@@ -1,0 +1,49 @@
+<?php defined('ALTUMCODE') || die() ?>
+
+<?php
+$is_video = isset($data->already_existing_image) && preg_match('/\.(mp4|webm|ogg)$/i', $data->already_existing_image);
+?>
+<div class="row">
+    <div class="col">
+            <input id="<?= $data->file_key ?>" type="file" name="<?= $data->file_key ?>" accept="<?= \Altum\Uploads::get_whitelisted_file_extensions_accept($data->uploads_file_key) ?>" class="form-control-file altum-file-input" <?= $data->input_data ?? null ?> />
+ 
+    </div>
+
+    <div id="<?= $data->file_key . '_preview' ?>" class="col-3 <?= !empty($data->already_existing_image) ? null : 'd-none' ?>">
+        <div class="d-flex justify-content-center align-items-center">
+            <a href="<?= $data->already_existing_image ? \Altum\Uploads::get_full_url($data->uploads_file_key) . $data->already_existing_image : '#' ?>" target="_blank" data-toggle="tooltip" title="<?= l('global.view') ?>" data-tooltip-hide-on-click>
+                <?php if($is_video): ?>
+                    <video src="<?= \Altum\Uploads::get_full_url($data->uploads_file_key) . $data->already_existing_image ?>" class="rounded" style="max-width: 100%; height: auto;" controls></video>
+                <?php else: ?>
+                    <img src="<?= \Altum\Uploads::get_full_url($data->uploads_file_key) . $data->already_existing_image ?>" class="altum-file-input-preview rounded" loading="lazy" onerror="image_on_error(this)" style="max-width: 100%; height: auto;"/>
+                <?php endif ?>
+            </a>
+        </div>
+    </div>
+
+
+
+
+    <div id="<?= $data->file_key . '_remove_selected_file_wrapper' ?>" class="col-12 d-none">
+        <label href="#" role="button" id="<?= $data->file_key . '_remove_selected_file' ?>" type="button" class="my-2 text-muted text-decoration-none">
+            <i class="fas fa-fw fa-sm fa-trash-alt mr-1"></i> <?= l('global.remove_selected_file') ?>
+        </label>
+    </div>
+</div>
+
+<?php ob_start() ?>
+<script>
+    let image_on_error = (image) => {
+        const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+        const svgImage = `
+                <svg xmlns="http://www.w3.org/2000/svg" width="68" height="68">
+                    <rect width="100%" height="100%" fill="${randomColor}" />
+                    <text x="50%" y="50%" font-size="10" fill="white" font-family="Arial, sans-serif" text-anchor="middle" dominant-baseline="middle">
+                        Dosya yok
+                    </text>
+                </svg>
+            `;
+        image.src = `data:image/svg+xml;base64,${btoa(svgImage)}`;
+    }
+</script>
+<?php \Altum\Event::add_content(ob_get_clean(), 'head', 'image_on_error') ?>
